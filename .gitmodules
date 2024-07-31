@@ -1,0 +1,3 @@
+[submodule "bluesim-1"]
+	path = bluesim
+	url = https://github.com/Williangalvani/bluesim-1.git
