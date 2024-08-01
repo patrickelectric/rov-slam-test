@@ -22,6 +22,12 @@ class Position(BaseModel):
     def to_array(self):
         return np.array([self.x, self.y, self.z])
 
+    def __add__(self, o):
+        return Position(x=self.x + o.x, y=self.y + o.y, z=self.z + o.z)
+
+    def __mul__(self, o: float):
+        return Position(x=self.x * o, y=self.y * o, z=self.z * o)
+
 class TagData(BaseModel):
     id: int
     # Real world position and angles, not relative
