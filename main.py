@@ -180,12 +180,12 @@ def main():
                     # poor man's low pass filter
                     if not old_coord:
                         old_coord = position
-                    x, y, z = 0.9 * old_coord.to_array() + 0.1 * position.to_array()
+                    position = old_coord * 0.9 + position * 0.1
                     old_coord = position
 
                     # Paticks test env: 0.9743828787711633 2.2215185425872606 0.2750221709072308
-                    print(x, y, z)
-                    rr.log("world/cam", rr.Transform3D(translation=[x, y, z]))
+                    print(position)
+                    rr.log("world/cam", rr.Transform3D(translation=position.to_array()))
 
 
         cv2.imshow('Aruco Marker Detection', frame)
