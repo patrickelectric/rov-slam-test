@@ -38,6 +38,7 @@ class TagData(BaseModel):
     # Real world position and angles, not relative
     angles: Angles
     position: Position
+    size: float
 
 
 OUR_WORLD = [
@@ -52,6 +53,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
+        "size": 0.36,
     },
     {
         "id": 666,
@@ -64,6 +66,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
+        "size": 0.36,
     },
     {
         "id": 999,
@@ -76,6 +79,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
+        "size": 0.36,
     },
     {
         "id": 222,
@@ -88,6 +92,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
+        "size": 0.36/4.0,
     },
 ]
 
@@ -99,9 +104,10 @@ known_position_received: bool = False
 # This is just a helper function to estimate the pose of a single marker
 def estimatePoseSingleMarkers(
     corners: List[np.ndarray],
-    marker_size: float,
+    sizes: float,
     mtx: np.ndarray,
     distortion: np.ndarray,
+    ids: List[int],
 ) -> Tuple[List[np.ndarray], List[np.ndarray], List]:
     """
     This will estimate the rvec and tvec for each of the marker corners detected by:
@@ -113,19 +119,22 @@ def estimatePoseSingleMarkers(
     RETURN list of rvecs, tvecs, and trash (so that it corresponds to the old estimatePoseSingleMarkers())
     Thanks: https://stackoverflow.com/questions/76802576/how-to-estimate-pose-of-single-marker-in-opencv-python-4-8-0
     """
-    marker_points = np.array(
+    rvecs = []
+    tvecs = []
+    trash = []
+    for i, c in enumerate(corners):
+        marker_size = 0.36
+        if ids[i][0] in sizes:
+            marker_size = sizes[ids[i][0]]
+        marker_points = np.array(
         [
             [-marker_size / 2, marker_size / 2, 0],
             [marker_size / 2, marker_size / 2, 0],
             [marker_size / 2, -marker_size / 2, 0],
             [-marker_size / 2, -marker_size / 2, 0],
         ],
-        dtype=np.float32,
-    )
-    rvecs = []
-    tvecs = []
-    trash = []
-    for c in corners:
+            dtype=np.float32,
+        )
         _, R, t = cv2.solvePnP(marker_points, c, mtx, distortion)
         rvecs.append(R)
         tvecs.append(t)
@@ -136,7 +145,6 @@ def estimatePoseSingleMarkers(
 def main():
     CAMMERA_WIDTH = 1920
     CAMERA_HEIGHT = 1080
-    MARKER_SIZE_M = 0.36
 
     # Camera calibration parameters for the following configuration, check calib.py
     camera_matrix = np.array(
@@ -159,8 +167,8 @@ def main():
             f"world/tag_{tags.id}/image",
             rr.Pinhole(
                 focal_length=300,
-                width=MARKER_SIZE_M * 1000,
-                height=MARKER_SIZE_M * 1000,
+                width=tags.size * 1000,
+                height=tags.size * 1000,
             ),
         )
         rr.log(
@@ -179,6 +187,7 @@ def main():
     old_coord = None
     old_rot = None
     known_ids = [tag.id for tag in KNOWN_TAGS]
+    sizes = {tag.id: tag.size for tag in KNOWN_TAGS}
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -192,7 +201,7 @@ def main():
         if ids is not None:
             cv2.aruco.drawDetectedMarkers(frame, corners, ids)
             rvecs, tvecs, _ = estimatePoseSingleMarkers(
-                corners, MARKER_SIZE_M, camera_matrix, dist_coeffs
+                corners, sizes, camera_matrix, dist_coeffs, ids
             )
             for i in range(len(ids)):
                 corner = corners[i][0]
