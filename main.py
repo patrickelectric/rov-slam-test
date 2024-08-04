@@ -5,9 +5,18 @@ from pydantic import BaseModel, Field, validator
 from pydantic_core import from_json
 from scipy.spatial.transform import Rotation as R
 from math import degrees
-
+from pymavlink import mavutil
 import rerun as rr
 from rerun.datatypes import Angle
+
+
+target_position = [0.34, 0.2, 0.54]
+
+# Create the connection
+master = mavutil.mavlink_connection('tcp:127.0.0.1:5760')
+# Wait a heartbeat before sending commands
+master.wait_heartbeat()
+print("connected")
 
 
 # Roll ? Are you drunk ? Use stabilize mode :)
@@ -140,11 +149,41 @@ def estimatePoseSingleMarkers(
         tvecs.append(t)
         trash.append(_)
     return rvecs, tvecs, trash
+  
+  
+def force_arm():
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,
+        1, 21196, 0, 0, 0, 0, 0)
+
+def actuate(position, yaw):
+    # force_arm()
+    error = yaw - 0
+    yaw_output = error * 5
+    x_error = position[0] - target_position[0]
+    y_error = position[1] - target_position[1]
+    z_error = position[2] - target_position[2]
+    x_output = x_error * 5
+    y_output = y_error * 5
+    z_output = z_error * 5
+    
+    #print(f"sending {channel_4}")
+    master.mav.manual_control_send(
+    master.target_system,
+    0,
+    0,
+    500, # 500 means neutral throttle
+    int(yaw_output),
+    0)
+
 
 def main():
     CAMMERA_WIDTH = 1920
     CAMERA_HEIGHT = 1080
-
+    print("armed")
     # Camera calibration parameters remain the same
     camera_matrix = np.array(
         [[334.77497062, 0, 594.55840979], [0, 353.7880701, 322.79266094], [0, 0, 1]],
@@ -189,6 +228,13 @@ def main():
     sizes = {tag.id: tag.size for tag in KNOWN_TAGS}
 
     while cap.isOpened():
+        heartbeat = master.recv_match(type="HEARTBEAT", blocking=False)
+        if heartbeat is not None:
+            armed = heartbeat.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED
+            if not armed:
+                print("Arming")
+                force_arm()
+    
         # Use grab() instead of read()
         if not cap.grab():
             break
@@ -263,6 +309,12 @@ def main():
                 filtered_quat = average_quat * 0.1 + old_rot * 0.9
                 old_coord = filtered_position
                 old_rot = filtered_quat
+                ## print quat as euler
+                r = R.from_quat(filtered_quat)
+                euler_angles = r.as_euler('xyz', degrees=True)
+                
+                yaw = euler_angles[1]
+                actuate(filtered_position, yaw)
                 rr.log(
                     "world/cam",
                     rr.Transform3D(
