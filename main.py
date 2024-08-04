@@ -53,7 +53,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
-        "size": 0.36,
+        "size": 0.4,
     },
     {
         "id": 666,
@@ -66,7 +66,7 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
-        "size": 0.36,
+        "size": 0.4,
     },
     {
         "id": 999,
@@ -79,20 +79,20 @@ OUR_WORLD = [
             "pitch": 0,
             "yaw": 0,
         },
-        "size": 0.36,
+        "size": 0.4,
     },
     {
         "id": 222,
         "position": {
             "x": 0.4,
-            "y": -0.3,
+            "y": -0.15,
             "z": 0,
         },
         "angles": {
             "pitch": 0,
             "yaw": 0,
         },
-        "size": 0.36/4.0,
+        "size": 0.1
     },
 ]
 
@@ -141,12 +141,11 @@ def estimatePoseSingleMarkers(
         trash.append(_)
     return rvecs, tvecs, trash
 
-
 def main():
     CAMMERA_WIDTH = 1920
     CAMERA_HEIGHT = 1080
 
-    # Camera calibration parameters for the following configuration, check calib.py
+    # Camera calibration parameters remain the same
     camera_matrix = np.array(
         [[334.77497062, 0, 594.55840979], [0, 353.7880701, 322.79266094], [0, 0, 1]],
         dtype=float,
@@ -161,7 +160,7 @@ def main():
         rr.Pinhole(focal_length=300, width=CAMMERA_WIDTH, height=CAMERA_HEIGHT),
     )
 
-    # We should use image_from_camera property here
+    # Initialize known tags (code remains the same)
     for tags in KNOWN_TAGS:
         rr.log(
             f"world/tag_{tags.id}/image",
@@ -190,11 +189,15 @@ def main():
     sizes = {tag.id: tag.size for tag in KNOWN_TAGS}
 
     while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
+        # Use grab() instead of read()
+        if not cap.grab():
             break
 
-        # rr.log("world/cam/image", rr.Image(frame))
+        # Retrieve the frame only when we're ready to process it
+        ret, frame = cap.retrieve()
+        if not ret:
+            continue
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = detector.detectMarkers(gray)
 
@@ -204,6 +207,7 @@ def main():
                 corners, sizes, camera_matrix, dist_coeffs, ids
             )
             for i in range(len(ids)):
+                # Rest of the processing code remains the same
                 corner = corners[i][0]
                 if ids[i][0] not in known_ids:
                     continue
@@ -250,7 +254,6 @@ def main():
                     camera_positions.append(camera_position)
                     camera_quats.append(camera_quat)
 
-                    # rr.log(f"world/tag_{marker_id}", rr.Transform3D(translation=position, rotation=rr.Quaternion(xyzw=quat)))
                 if old_coord is None:
                     old_coord = camera_positions[0]
                     old_rot = camera_quats[0]
