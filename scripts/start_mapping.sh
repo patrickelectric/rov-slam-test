@@ -10,10 +10,10 @@ if [ -d "$VENV_DIR" ]; then
 else
     echo "Creating a virtual environment..."
     python3 -m venv "$VENV_DIR"
-    
+
     echo "Activating the virtual environment..."
     source "$VENV_DIR/bin/activate"
-    
+
     # Check if requirements.txt exists and install packages
     if [ -f "requirements.txt" ]; then
         echo "Installing requirements..."
@@ -27,4 +27,4 @@ fi
 echo "Virtual environment is ready."
 
 # Run the main.py script within the activated virtual environment
-python main.py
+python navigation/main.py --vehicle tcp://10.40.1.129:5760
