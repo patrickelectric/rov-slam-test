@@ -1,3 +1,4 @@
+import time
 import json
 import os
 from typing import List, Tuple, Optional
@@ -7,6 +8,7 @@ import numpy as np
 from pydantic import BaseModel
 from utils.vector import Vec3
 
+DETECTION_RATE_S = 0.2
 
 class CameraResolution(BaseModel):
     width: int
@@ -32,6 +34,7 @@ class Camera:
         return np.array(self.configuration.distortion_coefficients)
 
     def __init__(self, configuration_file: str) -> None:
+        self.last_frame = time.time()
         try:
             with open(configuration_file, "r") as file:
                 self.configuration = CameraConfiguration(**json.load(file))
@@ -92,6 +95,8 @@ class Camera:
             ret, frame = self.capture.retrieve()
             if not ret:
                 return None
+            if time.time() - self.last_frame < DETECTION_RATE_S:
+                return None
 
             undistorted_frame = cv2.undistort(
                 frame, self.matrix, self.distortion, None, self.optimal_camera_matrix
@@ -103,5 +108,6 @@ class Camera:
             if ids is not None:
                 cv2.aruco.drawDetectedMarkers(frame, corners, ids)
                 return frame, corners, ids
+            self.last_frame = time.time()
 
         return None
