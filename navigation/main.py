@@ -1,6 +1,6 @@
 import cv2
 from args import CommandLineArgs
-from camera import Camera
+from camera import VideoCamera
 from world import World
 from slam import SLAM
 from vehicle import Vehicle
@@ -8,10 +8,10 @@ from vehicle import Vehicle
 def main() -> None:
     args = CommandLineArgs.from_args()
 
-    camera = Camera(args.camera)
+    camera = VideoCamera(args.camera)
     world = World(args.world)
-    vehicle = Vehicle(args.vehicle)
     detector = SLAM(world, camera)
+    vehicle = Vehicle(args.vehicle)
 
     while True:
         if not vehicle.is_vehicle_armed():

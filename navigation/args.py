@@ -19,7 +19,7 @@ class CommandLineArgs:
             "--world", type=str, default="./navigation/data/world.json", help="World configuration file to use"
         )
         parser.add_argument(
-            "--vehicle", type=str, help="Vehicle connection string"
+            "--vehicle", type=str, required=False, help="Vehicle connection string"
         )
 
         args = parser.parse_args()
