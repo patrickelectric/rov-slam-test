@@ -28,7 +28,7 @@ func take_screenshot(step: int):
 		var file_name = "world_%d" % step
 		var file_path = screenshot_path + file_name
 		image.save_png(file_path + ".png")
-		generate_json(file_path + ".json")
+		generate_json(file_path)
 
 func take_screenshots():
 	var dir = DirAccess.open("res://")
@@ -41,19 +41,31 @@ func take_screenshots():
 		position.x += 1
 
 func generate_json(path: String):
-	var world_json = {
-		"camera": {
-			"calibration_matrix": [[0,0,0],[0,0,0],[0,0,0]],
-			"position": from_vector3_to_json(position),
-			"rotation": from_vector3_to_json(rotation),
+	var viewport_size = get_viewport().get_visible_rect().size
+	var source = {
+		"id": path.get_file(),
+		"resolution": {
+			"width": viewport_size.x,
+			"height": viewport_size.y
 		},
-		"tags": [],
+		"calibration_matrix": [[],[],[]]
 	}
-	
 	var calibration_matrix = calculate_camera_matrix()
 	for i in range(3):
-		world_json.camera.calibration_matrix[i] = [calibration_matrix[i*3 + 0], calibration_matrix[i*3 + 1], calibration_matrix[i*3 + 2]]
+		source.calibration_matrix[i] = [calibration_matrix[i*3 + 0], calibration_matrix[i*3 + 1], calibration_matrix[i*3 + 2]]
+
+	var save_file = FileAccess.open(path + "_source.json", FileAccess.WRITE)
+	save_file.store_line(JSON.stringify(source))
+
+	save_file = FileAccess.open(path + "_camera.json", FileAccess.WRITE)
+	save_file.store_line(JSON.stringify({
+		"position": from_vector3_to_json(position),
+		"rotation": from_vector3_to_json(rotation),
+	}))
 	
+	var tags = {
+		"tags": []
+	}
 	var tag_json = {
 		"id": 0,
 		"position": [0, 0, 0],
@@ -71,10 +83,10 @@ func generate_json(path: String):
 			tag_json.position = from_vector3_to_json(sprite.position)
 			tag_json.rotation = from_vector3_to_json(sprite.rotation)
 			tag_json.size_m = sprite.get_meta("size_m")
-			world_json["tags"].push_front(tag_json.duplicate())
+			tags["tags"].push_front(tag_json.duplicate())
 
-	var save_file = FileAccess.open(path, FileAccess.WRITE)
-	save_file.store_line(JSON.stringify(world_json))
+	save_file = FileAccess.open(path + "_tags.json", FileAccess.WRITE)
+	save_file.store_line(JSON.stringify(tags))
 
 func from_vector3_to_json(from: Vector3):
 	return {
@@ -82,8 +94,6 @@ func from_vector3_to_json(from: Vector3):
 		"y": from.y,
 		"z": from.z,
 	}
-
-
 
 # Sensitivity settings for mouse and keyboard inputs
 var mouse_sensitivity: float = 0.1
