@@ -162,3 +162,34 @@ class ImageCamera(Camera):
             return None
 
         return self.frame
+
+
+class GstreamerCamera(Camera):
+    def __init__(self, configuration_file: str) -> None:
+        from capture import Video
+
+        try:
+            with open(configuration_file, "r") as file:
+                self.configuration = CameraConfiguration(**json.load(file))
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise ValueError(f"Error reading configuration file: {e}")
+
+        self.video = Video(self.configuration.id)
+
+        rr.init("Camera Position", spawn=True)
+        rr.log(
+            "world/cam/image",
+            rr.Pinhole(
+                focal_length=300,
+                width=self.configuration.resolution.width,
+                height=self.configuration.resolution.height
+            ),
+        )
+
+        super().__init__(self.configuration)
+
+    def get_frame(self) -> Optional[np.ndarray]:
+        if time.time() - self.last_frame < DETECTION_RATE_S or not self.video.frame_available():
+            return None
+
+        return self.video.frame()
