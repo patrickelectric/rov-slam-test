@@ -5,7 +5,7 @@ import rerun as rr
 import cv2
 import numpy as np
 from pydantic import BaseModel
-from utils.vector import Angles, Position
+from utils.vector import Vec3
 
 
 class CameraResolution(BaseModel):
@@ -41,8 +41,8 @@ class Camera:
         os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
         self.capture: Optional[cv2.VideoCapture] = None
-        print(f"Source: {self.configuration.id}")
-        self.capture = cv2.VideoCapture(self.configuration.id)
+        print(f"Camera Source: {self.configuration.id}")
+        self.capture = cv2.VideoCapture(self.configuration.id, cv2.CAP_FFMPEG)
         if not self.capture.isOpened():
             raise ValueError("Error opening video capture")
 
@@ -76,8 +76,8 @@ class Camera:
             parameters
         )
 
-        self.position: Position = Position(x=0, y=0, z=0)
-        self.angles: Angles = Angles(x=0, y=0, z=0)
+        self.position: Vec3 = Vec3(x=0, y=0, z=0)
+        self.angles: Vec3 = Vec3(x=0, y=0, z=0)
 
     def __del__(self):
         if self.capture and self.capture.isOpened():

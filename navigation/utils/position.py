@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from typing import List, Tuple, Dict
-from utils.vector import Angles, Position
+from utils.vector import Vec3
 from scipy.spatial.transform import Rotation as R
 
 # This is just a helper function to estimate the pose of a single marker
@@ -44,16 +44,16 @@ def estimate_pose_single_markers(
         trash.append(_)
     return rvecs, tvecs, trash
 
-def get_positioning_from_estimation(rvec: np.ndarray, tvec: np.ndarray) -> Tuple[float, Angles]:
+def get_positioning_from_estimation(rvec: np.ndarray, tvec: np.ndarray) -> Tuple[float, Vec3]:
     distance = np.linalg.norm(tvec)
     rmat, _ = cv2.Rodrigues(rvec)
     proj_matrix = np.hstack((rmat, tvec))
     _, _, _, _, _, _, angles = cv2.decomposeProjectionMatrix(proj_matrix)
-    pitch, yaw, _ = angles.flatten()
+    pitch, yaw, row = angles.flatten()
 
-    return distance, Angles(x=yaw, y=pitch)
+    return distance, Vec3(x=pitch, y=yaw, z=row)
 
-def get_camera_position_from_estimations(rvec: np.ndarray, tvec: np.ndarray, tag_position: Position) -> Tuple[np.ndarray, np.ndarray]:
+def get_camera_position_from_estimations(rvec: np.ndarray, tvec: np.ndarray, tag_position: Vec3) -> Tuple[np.ndarray, np.ndarray]:
     position = tvec.flatten()
 
     # Store the rotation information

@@ -1,5 +1,5 @@
 {
-    "id": "rtsp://10.40.1.129:8554/test",
+    "id": "rtsp://127.0.0.1:8554/test",
     "resolution": {
         "width": 1152,
         "height": 648

@@ -1,15 +1,15 @@
 import json
 from pydantic import BaseModel
 import rerun as rr
-from utils.vector import Position, Angles
+from utils.vector import Vec3
 from typing import Dict
 
 
 class TagData(BaseModel):
     id: int
     size: float
-    position: Position
-    angles: Angles
+    position: Vec3
+    angles: Vec3
 
 
 class World:
