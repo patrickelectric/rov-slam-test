@@ -1,12 +1,14 @@
 import argparse
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
 class CommandLineArgs:
     camera: str
     world: str
-    vehicle: str
+    vehicle: Optional[str] = None
+    test_set: Optional[str] = None
 
     @staticmethod
     def from_args() -> "CommandLineArgs":
@@ -19,10 +21,15 @@ class CommandLineArgs:
             "--world", type=str, default="./navigation/data/world.json", help="World configuration file to use"
         )
         parser.add_argument(
-            "--vehicle", type=str, required=False, help="Vehicle connection string"
+            "--vehicle", type=str, required=False, default= None, help="Vehicle connection string"
+        )
+        parser.add_argument(
+            "--test-set", type=str, required=False, default= None, help="Directory containing test set images and jsons"
         )
 
         args = parser.parse_args()
-        navigation_args = CommandLineArgs(camera=args.camera, world=args.world, vehicle=args.vehicle)
+        navigation_args = CommandLineArgs(
+            camera=args.camera, world=args.world, vehicle=args.vehicle, test_set=args.test_set
+        )
 
         return navigation_args

@@ -1,3 +1,4 @@
+from functools import wraps
 from pymavlink import mavutil
 from utils.vector import Vec3
 
@@ -27,6 +28,16 @@ class Vehicle:
             1, 21196, 0, 0, 0, 0, 0
         )
 
+    # Make a decorator to make sure vehicle is armed
+    def ensure_armed(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if not self.is_vehicle_armed():
+                self.force_arm()
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    @ensure_armed
     def actuate(self, position: Vec3, yaw: float):
         yaw_error = yaw - 0
 
