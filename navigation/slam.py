@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from camera import Camera
 from utils.position import estimate_pose_single_markers, get_positioning_from_estimation, get_camera_position_from_estimations
-from utils.vector import Position, Angles
+from utils.vector import Vec3
 from world import World
 from scipy.spatial.transform import Rotation as R
 import rerun as rr
@@ -14,10 +14,10 @@ class SLAM:
     def __init__(self, world: World, camera: Camera) -> None:
         self.camera = camera
         self.world = world
-        self.old_coord: Optional[Position] = None
-        self.old_rot: Optional[Angles] = None
+        self.old_coord: Optional[Vec3] = None
+        self.old_rot: Optional[Vec3] = None
 
-    def _slam(self, camera_positions: List[Position], camera_quats: List[Angles]) -> None:
+    def _slam(self, camera_positions: List[Vec3], camera_quats: List[Vec3]) -> None:
         if self.old_coord is None:
             self.old_coord = camera_positions[0]
             self.old_rot = camera_quats[0]
@@ -35,7 +35,7 @@ class SLAM:
         yaw = euler_angles[1]
 
         self.camera.position = filtered_position
-        self.camera.angles = Angles(yaw=yaw, pitch=euler_angles[0], roll=euler_angles[2])
+        self.camera.angles = Vec3(x=euler_angles[0], y=yaw, z=euler_angles[2])
 
         rr.log(
             "world/cam",

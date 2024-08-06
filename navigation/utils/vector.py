@@ -1,25 +1,40 @@
 import numpy as np
 from pydantic import BaseModel
 
-# Roll ? Are you drunk ? Use stabilize mode :)
-class Angles(BaseModel):
-    pitch: float
-    yaw: float
 
-    def to_array(self):
-        return np.array([self.pitch, self.yaw])
-
-
-class Position(BaseModel):
+class Vec3(BaseModel):
+    # For angles x, y, z are pitch, yaw, roll
     x: float
     y: float
     z: float
 
+    @property
+    def raw(self) -> np.ndarray:
+        return np.array([self.x, self.y, self.z])
+
     def to_array(self):
         return np.array([self.x, self.y, self.z])
 
-    def __add__(self, o):
-        return Position(x=self.x + o.x, y=self.y + o.y, z=self.z + o.z)
+    @property
+    def roll(self) -> float:
+        return self.x
 
-    def __mul__(self, o: float):
-        return Position(x=self.x * o, y=self.y * o, z=self.z * o)
+    @roll.setter
+    def roll(self, value: float):
+        self.x = value
+
+    @property
+    def pitch(self) -> float:
+        return self.y
+
+    @pitch.setter
+    def pitch(self, value: float):
+        self.y = value
+
+    @property
+    def yaw(self) -> float:
+        return self.z
+
+    @yaw.setter
+    def yaw(self, value: float):
+        self.z = value
