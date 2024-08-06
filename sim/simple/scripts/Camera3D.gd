@@ -82,3 +82,58 @@ func from_vector3_to_json(from: Vector3):
 		"y": from.y,
 		"z": from.z,
 	}
+
+
+
+# Sensitivity settings for mouse and keyboard inputs
+var mouse_sensitivity: float = 0.1
+var move_speed: float = 5.0
+
+# Limit for the vertical angle to prevent flipping
+var max_vertical_angle: float = 89.0
+var min_vertical_angle: float = -89.0
+
+# Variables to store camera rotation
+var yaw: float = 0.0
+var pitch: float = 0.0
+
+func _input(event):  		
+	if event is InputEventMouseMotion:
+		rotate_y(deg_to_rad(-event.relative.x * mouse_sensitivity))
+		var changev = -event.relative.y * mouse_sensitivity
+		if max_vertical_angle+changev>-50 and max_vertical_angle+changev<50:
+			max_vertical_angle+=changev
+			rotate_x(deg_to_rad(changev))
+
+func _process(delta: float) -> void:
+	var positionLabel: Label = get_node("positionLabel")
+	var rotation_deg = [rad_to_deg(rotation.x), rad_to_deg(rotation.y), rad_to_deg(rotation.z)]
+	var text = "Coord: %.1f %.1f %.1f (%.1f, %.1f, %.1f)" % [position.x, position.y, position.z, rotation_deg[0], rotation_deg[1], rotation_deg[2]]
+	positionLabel.set_text(text)
+	
+	
+	# Handle keyboard input for camera movement
+	var direction = Vector3.ZERO
+
+	if Input.is_action_pressed("ui_up"):
+		direction -= transform.basis.z
+	if Input.is_action_pressed("ui_down"):
+		direction += transform.basis.z
+	if Input.is_action_pressed("ui_left"):
+		direction -= transform.basis.x
+	if Input.is_action_pressed("ui_right"):
+		direction += transform.basis.x
+	if Input.is_action_pressed("up"):
+		direction += transform.basis.y
+	if Input.is_action_pressed("down"):
+		direction -= transform.basis.y
+
+	# Normalize the direction vector
+	direction = direction.normalized()
+
+	# Move the camera
+	position += direction * move_speed * delta
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
