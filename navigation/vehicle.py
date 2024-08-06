@@ -28,21 +28,21 @@ class Vehicle:
         )
 
     def actuate(self, position: Vec3, yaw: float):
-        error = yaw - 0
-        yaw_output = error * 5
+        yaw_error = yaw - 0
+
         x_error = position.x - self.target_position.x
         y_error = position.y - self.target_position.y
         z_error = position.z - self.target_position.z
-        x_output = x_error * 5
-        y_output = y_error * 5
-        z_output = z_error * 5
-
-        #print(f"sending {channel_4}")
+        # TODO: PIDs and custom gains
+        yaw_output = yaw_error * 15
+        x_output = x_error * 100
+        y_output = y_error * 400
+        z_output = z_error * 100
         self.master.mav.manual_control_send(
             self.master.target_system,
-            0,
-            0,
-            500, # 500 means neutral throttle
+            int(z_output), # sideways?
+            -int(x_output),
+            500 -int(y_output), # 500 means neutral throttle
             int(yaw_output),
             0
         )
