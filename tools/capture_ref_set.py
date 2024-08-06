@@ -11,7 +11,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Tool for capturing reference images for camera calibration")
 
     parser.add_argument(
-        "--camera-source",required=True, help="Camera source to capture images from"
+        "--camera-source", type=str, required=True, help="Camera source to capture images from"
     )
     parser.add_argument(
         "--n-photos", type=int, default=200, help="Number of photos to capture"
@@ -25,7 +25,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    cap = cv2.VideoCapture(args.camera_source)
+    if args.camera_source.isdigit():
+        cap = cv2.VideoCapture(int(args.camera_source))
+    else:
+        cap = cv2.VideoCapture(args.camera_source)
 
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)

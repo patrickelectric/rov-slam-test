@@ -52,7 +52,7 @@ class SLAM:
         frame, corners, ids = markers
 
         try:
-            rvecs, tvecs = estimate_pose_single_markers(
+            rvecs, tvecs, _ = estimate_pose_single_markers(
                 corners, self.world.tags_size, self.camera.matrix, self.camera.distortion, ids
             )
         except cv2.error:
@@ -94,6 +94,6 @@ class SLAM:
                 camera_positions.append(camera_pos)
                 camera_quats.append(camera_quat)
 
-        self._slam(camera_positions, camera_quats)
+            self._slam(camera_positions, camera_quats)
 
         cv2.imshow("Aruco Marker Detection", frame)
