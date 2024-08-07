@@ -19,12 +19,13 @@ class SLAM:
         self.succeeded = False
 
     def _slam(self, camera_positions: List[Vec3], camera_quats: List[Vec3]) -> None:
-        if self.old_coord is None:
-            self.old_coord = camera_positions[0]
-            self.old_rot = camera_quats[0]
-
         average_position = np.mean(camera_positions, axis=0)
         average_quat = np.mean(camera_quats, axis=0)
+
+        if self.old_coord is None:
+            self.old_coord = average_position
+            self.old_rot = average_quat
+
         filtered_position = average_position * 0.1 + self.old_coord * 0.9
         filtered_quat = average_quat * 0.1 + self.old_rot * 0.9
         self.old_coord = filtered_position
