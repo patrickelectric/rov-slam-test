@@ -16,6 +16,7 @@ func _ready():
 		var aruco_id = result.get_string("id")
 
 		var sprite = Sprite3D.new()
+		sprite.set_draw_flag(SpriteBase3D.DrawFlags.FLAG_DOUBLE_SIDED, false)
 		sprite.texture = load(path + file)
 		var size = sprite.texture.get_width()
 		var size_m = 0.2
