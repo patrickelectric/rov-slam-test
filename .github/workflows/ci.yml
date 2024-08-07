@@ -35,4 +35,4 @@ jobs:
           # We need to be in the same folder to run godot project
           cd sim/simple
           xvfb-run --auto-servernum godot --headless project.godot --quit
-          xvfb-run --auto-servernum godot main.tscn
+          GENERATE_TESTS=1 xvfb-run --auto-servernum godot main.tscn
