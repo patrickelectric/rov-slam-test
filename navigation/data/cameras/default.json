@@ -1,10 +1,10 @@
 {
-  "id": 5601,
+  "id": "rtsp://192.168.8.228:8554/video_udp_stream_0",
   "resolution": {
       "width": 800,
       "height": 600
   },
-  "camera_matrix": [
+  "calibration_matrix": [
       [
           603.2769722342914,
           0.0,
