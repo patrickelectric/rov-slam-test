@@ -40,10 +40,12 @@ def main() -> None:
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        if laplacian_variance(gray) < args.laplacian_threshold:
+        laplacian = laplacian_variance(gray)
+        print(laplacian)
+        if laplacian < args.laplacian_threshold:
             print(f"Discarding blurry image")
             continue
-
+        print(f"Saving image {counter}")
         cv2.imwrite(f"{args.output_folder}/img_{counter}.jpeg", frame)
         counter += 1
         time.sleep(0.7)
