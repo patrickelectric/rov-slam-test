@@ -9,7 +9,6 @@ import numpy as np
 from pydantic import BaseModel
 from utils.vector import Vec3
 
-DETECTION_RATE_S = 0.2
 
 class CameraResolution(BaseModel):
     width: int
@@ -78,7 +77,6 @@ class Camera:
 
 class VideoCamera(Camera):
     def __init__(self, configuration_file: str) -> None:
-        self.last_frame = time.time()
         try:
             with open(configuration_file, "r") as file:
                 self.configuration = CameraConfiguration(**json.load(file))
@@ -119,9 +117,6 @@ class VideoCamera(Camera):
             self.capture.release()
 
     def get_frame(self) -> Optional[np.ndarray]:
-        if time.time() - self.last_frame < DETECTION_RATE_S:
-            return None
-
         if self.capture.isOpened():
             if not self.capture.grab():
                 return None
@@ -130,7 +125,6 @@ class VideoCamera(Camera):
             if not ret:
                 return None
 
-            self.last_frame = time.time()
             return frame
         return None
 
@@ -158,9 +152,6 @@ class ImageCamera(Camera):
         super().__init__(self.configuration)
 
     def get_frame(self) -> Optional[np.ndarray]:
-        if time.time() - self.last_frame < DETECTION_RATE_S:
-            return None
-
         return self.frame
 
 
@@ -189,7 +180,7 @@ class GstreamerCamera(Camera):
         super().__init__(self.configuration)
 
     def get_frame(self) -> Optional[np.ndarray]:
-        if time.time() - self.last_frame < DETECTION_RATE_S or not self.video.frame_available():
+        if not self.video.frame_available():
             return None
 
         return self.video.frame()

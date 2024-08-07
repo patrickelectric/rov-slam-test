@@ -1,6 +1,6 @@
 import cv2
 from args import CommandLineArgs
-from camera import VideoCamera
+from camera import GstreamerCamera as VideoCamera
 from world import World
 from slam import SLAM
 from vehicle import Vehicle
