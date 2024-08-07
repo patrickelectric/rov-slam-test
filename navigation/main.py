@@ -1,6 +1,6 @@
 import cv2
 from args import CommandLineArgs
-from camera import GstreamerCamera as VideoCamera
+from camera import VideoCamera
 from world import World
 from slam import SLAM
 from vehicle import Vehicle
@@ -25,7 +25,12 @@ def main() -> None:
         detector.detect()
 
         if args.vehicle:
-            vehicle.actuate(camera.position, camera.angles.yaw)
+            if not detector.succeeded:
+                print("No markers detected, deactivating vehicle")
+                vehicle.actuate(camera.position, camera.rotation.yaw)
+                continue
+
+            vehicle.actuate(camera.position, camera.rotation.yaw)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

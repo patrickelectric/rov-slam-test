@@ -80,9 +80,11 @@ class Camera:
         gray = cv2.cvtColor(undistorted_frame, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = self.detector.detectMarkers(gray)
 
-        if ids is not None:
-            cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-            return frame, corners, ids
+        if ids is None:
+            return frame, None, None
+
+        cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+        return frame, corners, ids
 
 
 class VideoCamera(Camera):

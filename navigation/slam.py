@@ -16,6 +16,7 @@ class SLAM:
         self.world = world
         self.old_coord: Optional[Vec3] = None
         self.old_rot: Optional[Vec3] = None
+        self.succeeded = False
 
     def _slam(self, camera_positions: List[Vec3], camera_quats: List[Vec3]) -> None:
         if self.old_coord is None:
@@ -41,15 +42,15 @@ class SLAM:
             "world/cam",
             rr.Transform3D(
                 translation=filtered_position,
-                rotation=rr.Quaternion(xyzw=filtered_quat),
+                rotation=[self.camera.rotation.x, self.camera.rotation.y, self.camera.rotation.z],
             ),
         )
 
     def detect(self) -> None:
-        markers = self.camera.get_frame_markers()
-        if not markers:
+        frame, corners, ids = self.camera.get_frame_markers()
+        if corners is None or ids is None:
+            cv2.imshow("Aruco Marker Detection", frame)
             return
-        frame, corners, ids = markers
 
         try:
             rvecs, tvecs, _ = estimate_pose_single_markers(
@@ -58,7 +59,8 @@ class SLAM:
         except cv2.error:
             return
 
-        if len(rvecs) != len(ids) or len(tvecs) != len(ids):
+        if len(ids) == 0 or len(rvecs) != len(ids) or len(tvecs) != len(ids):
+            self.succeeded = False
             return
 
         for i in range(len(ids)):
@@ -95,5 +97,7 @@ class SLAM:
                 camera_quats.append(camera_quat)
 
             self._slam(camera_positions, camera_quats)
+
+        self.succeeded = True
 
         cv2.imshow("Aruco Marker Detection", frame)

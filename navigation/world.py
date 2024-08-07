@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import rerun as rr
 from utils.vector import Vec3
 from typing import Dict
+import cv2
 
 
 class TagData(BaseModel):
@@ -33,13 +34,19 @@ class World:
 
         # Initialize known tags (code remains the same)
         for tag in self.tags:
+            aruco_image = self.gen_aruco_img(tag.id, tag.size_m)
+            aruco_image = cv2.flip(aruco_image, 0)
             rr.log(
                 f"world/tag_{tag.id}/image",
                 rr.Pinhole(
-                    focal_length=300,
-                    width=tag.size_m * 1000,
-                    height=tag.size_m * 1000,
+                    focal_length=60,
+                    width=aruco_image.shape[1],
+                    height=aruco_image.shape[0],
                 ),
+            )
+            rr.log(
+                f"world/tag_{tag.id}/image",
+                rr.Image(aruco_image)
             )
             rr.log(
                 f"world/tag_{tag.id}",
@@ -47,6 +54,11 @@ class World:
                     translation=[tag.position.x, tag.position.y, tag.position.z]
                 ),
             )
+
+    def gen_aruco_img(self, tag_id: int, size: float) -> None:
+        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
+        tag_size_px = int(size * 10 * 370.7952755906)
+        return cv2.aruco.generateImageMarker(aruco_dict, tag_id, tag_size_px)
 
     def get_abs_tag(self, tag_id: int) -> TagData | None:
         return self.absolute_tags.get(tag_id)
