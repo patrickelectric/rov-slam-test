@@ -54,10 +54,10 @@ func generate_json(path: String):
 	for i in range(3):
 		source.calibration_matrix[i] = [calibration_matrix[i*3 + 0], calibration_matrix[i*3 + 1], calibration_matrix[i*3 + 2]]
 
-	var save_file = FileAccess.open(path + "_source.json", FileAccess.WRITE)
+	var save_file = FileAccess.open(path + "_camera.json", FileAccess.WRITE)
 	save_file.store_line(JSON.stringify(source))
 
-	save_file = FileAccess.open(path + "_camera.json", FileAccess.WRITE)
+	save_file = FileAccess.open(path + "_source.json", FileAccess.WRITE)
 	save_file.store_line(JSON.stringify({
 		"position": from_vector3_to_json(position),
 		"rotation": from_vector3_to_json(rotation),
