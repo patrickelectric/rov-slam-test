@@ -30,6 +30,14 @@ func take_screenshot(step: int):
 		image.save_png(file_path + ".png")
 		generate_json(file_path)
 
+func take_chess_screenshot(step: int):
+	var image = get_viewport().get_texture().get_image()
+	image.flip_y() # Images are flipped by default in Godot, so we need to flip them back
+	var file_name = "chess_%d" % step
+	var file_path = screenshot_path + file_name
+	image.save_png(file_path + ".png")
+	generate_json(file_path)
+
 func take_screenshots():
 	var dir = DirAccess.open("res://")
 	if not dir.dir_exists(screenshot_path):
@@ -39,6 +47,15 @@ func take_screenshots():
 		await get_tree().create_timer(0.5).timeout 
 		take_screenshot(step)
 		position.x += 1
+
+	for step in range(10*10):
+		var x = step % 10
+		var y = int(step / 10)
+		position.z = 1.5
+		position.x = 1.5 - 3 * x / 9
+		position.y = 4.3 + 1.5 * y / 9
+		await get_tree().create_timer(0.1).timeout
+		take_chess_screenshot(step)
 
 func generate_json(path: String):
 	var viewport_size = get_viewport().get_visible_rect().size
