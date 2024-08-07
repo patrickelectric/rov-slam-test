@@ -6,9 +6,11 @@ numpy==1.26.4
 opencv-contrib-python==4.10.0.84
 pillow==10.4.0
 pyarrow==17.0.0
+pycairo==1.26.1
 pydantic==2.8.2
 pydantic_core==2.20.1
+PyGObject==3.48.2
 pymavlink==2.4.41
 rerun-sdk==0.17.0
-typing_extensions==4.12.2
 scipy==1.14.0
+typing_extensions==4.12.2

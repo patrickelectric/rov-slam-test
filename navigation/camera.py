@@ -1,4 +1,3 @@
-import time
 import abc
 import json
 import os
@@ -18,16 +17,16 @@ class CameraResolution(BaseModel):
 class CameraConfiguration(BaseModel):
     id: int | str
     resolution: CameraResolution
-    camera_matrix: List[List[float]]
-    distortion_coefficients: List[List[float]]
-    rotation_vectors: List[List[List[float]]]
-    translation_vectors: List[List[List[float]]]
+    calibration_matrix: List[List[float]]
+    distortion_coefficients: Optional[List[List[float]]] = np.array([[0.0],[0.0],[0.0],[0.0], [0.0]])
+    rotation_vectors: Optional[List[List[List[float]]]] = None
+    translation_vectors: Optional[List[List[List[float]]]] = None
 
 
 class Camera:
     @property
     def matrix(self) -> np.ndarray:
-        return np.array(self.configuration.camera_matrix)
+        return np.array(self.configuration.calibration_matrix)
 
     @property
     def distortion(self) -> np.ndarray:
@@ -42,6 +41,17 @@ class Camera:
             (config.resolution.width, config.resolution.height)
         )
 
+        if os.environ.get("RERUN_DISABLE_UI") != "1":
+            rr.init("Camera Position", spawn=True)
+            rr.log(
+                "world/cam/image",
+                rr.Pinhole(
+                    focal_length=300,
+                    width=config.resolution.width,
+                    height=config.resolution.height
+                ),
+            )
+
         parameters = cv2.aruco.DetectorParameters()
         parameters.minMarkerPerimeterRate = 0.08
 
@@ -51,7 +61,7 @@ class Camera:
         )
 
         self.position: Vec3 = Vec3(x=0, y=0, z=0)
-        self.angles: Vec3 = Vec3(x=0, y=0, z=0)
+        self.rotation: Vec3 = Vec3(x=0, y=0, z=0)
 
     @abc.abstractmethod
     def get_frame(self) -> Optional[np.ndarray]:
@@ -96,16 +106,6 @@ class VideoCamera(Camera):
         if not self.capture.isOpened():
             raise ValueError("Error opening video capture")
 
-        rr.init("Camera Position", spawn=True)
-        rr.log(
-            "world/cam/image",
-            rr.Pinhole(
-                focal_length=300,
-                width=self.configuration.resolution.width,
-                height=self.configuration.resolution.height
-            ),
-        )
-
         self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'H264'))
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.configuration.resolution.width)
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.configuration.resolution.height)
@@ -130,24 +130,14 @@ class VideoCamera(Camera):
 
 
 class ImageCamera(Camera):
-    def __init__(self, configuration_file: str) -> None:
+    def __init__(self, configuration_file: str, frame: np.ndarray) -> None:
         try:
             with open(configuration_file, "r") as file:
                 self.configuration = CameraConfiguration(**json.load(file))
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise ValueError(f"Error reading configuration file: {e}")
 
-        self.frame: np.ndarray = cv2.imaread(self.configuration.id)
-
-        rr.init("Camera Position", spawn=True)
-        rr.log(
-            "world/cam/image",
-            rr.Pinhole(
-                focal_length=300,
-                width=self.configuration.resolution.width,
-                height=self.configuration.resolution.height
-            ),
-        )
+        self.frame: np.ndarray = frame
 
         super().__init__(self.configuration)
 
@@ -166,16 +156,6 @@ class GstreamerCamera(Camera):
             raise ValueError(f"Error reading configuration file: {e}")
 
         self.video = Video(self.configuration.id)
-
-        rr.init("Camera Position", spawn=True)
-        rr.log(
-            "world/cam/image",
-            rr.Pinhole(
-                focal_length=300,
-                width=self.configuration.resolution.width,
-                height=self.configuration.resolution.height
-            ),
-        )
 
         super().__init__(self.configuration)
 

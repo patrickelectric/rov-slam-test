@@ -4,10 +4,15 @@ from camera import GstreamerCamera as VideoCamera
 from world import World
 from slam import SLAM
 from vehicle import Vehicle
+from test_set import run_test_set
 
 
 def main() -> None:
     args = CommandLineArgs.from_args()
+
+    if args.test_set:
+        run_test_set(args.test_set)
+        return
 
     camera = VideoCamera(args.camera)
     world = World(args.world)

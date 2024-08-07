@@ -34,8 +34,8 @@ class SLAM:
 
         yaw = euler_angles[1]
 
-        self.camera.position = filtered_position
-        self.camera.angles = Vec3(x=euler_angles[0], y=yaw, z=euler_angles[2])
+        self.camera.position = Vec3(x=filtered_position[0], y=filtered_position[1], z=filtered_position[2])
+        self.camera.rotation = Vec3(x=euler_angles[0], y=yaw, z=euler_angles[2])
 
         rr.log(
             "world/cam",
