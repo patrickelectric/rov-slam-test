@@ -96,24 +96,21 @@ func from_vector3_to_json(from: Vector3):
 	}
 
 # Sensitivity settings for mouse and keyboard inputs
-var mouse_sensitivity: float = 0.1
 var move_speed: float = 5.0
 
-# Limit for the vertical angle to prevent flipping
-var max_vertical_angle: float = 89.0
-var min_vertical_angle: float = -89.0
+var rot_x = 0
+var rot_y = 0
 
-# Variables to store camera rotation
-var yaw: float = 0.0
-var pitch: float = 0.0
+var LOOKAROUND_SPEED = -0.001
 
-func _input(event):  		
+func _input(event):
 	if event is InputEventMouseMotion:
-		rotate_y(deg_to_rad(-event.relative.x * mouse_sensitivity))
-		var changev = -event.relative.y * mouse_sensitivity
-		if max_vertical_angle+changev>-50 and max_vertical_angle+changev<50:
-			max_vertical_angle+=changev
-			rotate_x(deg_to_rad(changev))
+		# modify accumulated mouse rotation
+		rot_x += event.relative.x * LOOKAROUND_SPEED
+		rot_y += event.relative.y * LOOKAROUND_SPEED
+		transform.basis = Basis() # reset rotation
+		rotate_object_local(Vector3(0, 1, 0), rot_x) # first rotate in Y
+		rotate_object_local(Vector3(1, 0, 0), rot_y) # then rotate in X
 
 func _process(delta: float) -> void:
 	var positionLabel: Label = get_node("positionLabel")
