@@ -7,24 +7,29 @@ from typing import Dict
 
 class TagData(BaseModel):
     id: int
-    size: float
+    size_m: float
     position: Vec3
-    angles: Vec3
+    rotation: Vec3
 
 
 class World:
     def __init__(self, configuration_file: str) -> None:
         try:
             with open(configuration_file, "r") as file:
-                self.tags = [ TagData(**tag) for tag in json.load(file) ]
+                config = json.load(file)
+
+                if "tags" not in config:
+                    self.tags = [ TagData(**tag) for tag in config ]
+                else:
+                    self.tags = [ TagData(**tag) for tag in config["tags"] ]
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise ValueError(f"Error reading world configuration file: {e}")
 
         self.absolute_tags: Dict[int, TagData] = {
-            tag.id: tag for tag in self.tags if tag.position is not None and tag.angles is not None
+            tag.id: tag for tag in self.tags if tag.position is not None and tag.rotation is not None
         }
 
-        self.tags_size = {tag.id: tag.size for tag in self.tags}
+        self.tags_size = {tag.id: tag.size_m for tag in self.tags}
 
         # Initialize known tags (code remains the same)
         for tag in self.tags:
@@ -32,8 +37,8 @@ class World:
                 f"world/tag_{tag.id}/image",
                 rr.Pinhole(
                     focal_length=300,
-                    width=tag.size * 1000,
-                    height=tag.size * 1000,
+                    width=tag.size_m * 1000,
+                    height=tag.size_m * 1000,
                 ),
             )
             rr.log(

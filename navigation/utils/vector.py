@@ -38,3 +38,15 @@ class Vec3(BaseModel):
     @yaw.setter
     def yaw(self, value: float):
         self.z = value
+
+    def __add__(self, other: "Vec3") -> "Vec3":
+        return Vec3(x=self.x + other.x, y=self.y + other.y, z=self.z + other.z)
+
+    def __sub__(self, other: "Vec3") -> "Vec3":
+        return Vec3(x=self.x - other.x, y=self.y - other.y, z=self.z - other.z)
+
+    def dot(self, other: "Vec3") -> float:
+        return np.dot(self.raw, other.raw)
+
+    def __str__(self) -> str:
+        return f"x={np.round(self.x, 3)}, y={np.round(self.y, 3)}, z={np.round(self.z, 3)}"

@@ -102,7 +102,7 @@ class CameraCalibrator:
                 "width": self.metadata["resolution"]["width"],
                 "height": self.metadata["resolution"]["height"]
             },
-            "camera_matrix": matrix.tolist(),
+            "calibration_matrix": matrix.tolist(),
             "distortion_coefficients": [[dist] for dist in distortion.tolist()[0]],
             "rotation_vectors": [rvec.tolist() for rvec in r_vecs],
             "translation_vectors": [tvec.tolist() for tvec in t_vecs]
