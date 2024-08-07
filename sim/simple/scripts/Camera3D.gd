@@ -14,7 +14,7 @@ func calculate_camera_matrix():
 
 	var center_x = viewport_size.x / 2.0
 	var center_y = viewport_size.y / 2.0
-	
+
 	var camera_matrix = PackedFloat32Array([
 		focal_length_x, 0.0, center_x,
 		0.0, focal_length_y, center_y,
@@ -23,12 +23,12 @@ func calculate_camera_matrix():
 	return camera_matrix
 
 func take_screenshot(step: int):
-		var image = get_viewport().get_texture().get_image()
-		image.flip_y() # Images are flipped by default in Godot, so we need to flip them back
-		var file_name = "world_%d" % step
-		var file_path = screenshot_path + file_name
-		image.save_png(file_path + ".png")
-		generate_json(file_path)
+	var image = get_viewport().get_texture().get_image()
+	image.flip_y() # Images are flipped by default in Godot, so we need to flip them back
+	var file_name = "world_%d" % step
+	var file_path = screenshot_path + file_name
+	image.save_png(file_path + ".png")
+	generate_json(file_path)
 
 func take_chess_screenshot(step: int):
 	var image = get_viewport().get_texture().get_image()
@@ -44,7 +44,7 @@ func take_screenshots():
 		dir.make_dir_recursive(screenshot_path)
 
 	for step in range(4):
-		await get_tree().create_timer(0.5).timeout 
+		await get_tree().create_timer(0.5).timeout
 		take_screenshot(step)
 		position.x += 1
 
@@ -79,7 +79,7 @@ func generate_json(path: String):
 		"position": from_vector3_to_json(position),
 		"rotation": from_vector3_to_json(rotation),
 	}))
-	
+
 	var tags = {
 		"tags": []
 	}
@@ -134,8 +134,8 @@ func _process(delta: float) -> void:
 	var rotation_deg = [rad_to_deg(rotation.x), rad_to_deg(rotation.y), rad_to_deg(rotation.z)]
 	var text = "Coord: %.1f %.1f %.1f (%.1f, %.1f, %.1f)" % [position.x, position.y, position.z, rotation_deg[0], rotation_deg[1], rotation_deg[2]]
 	positionLabel.set_text(text)
-	
-	
+
+
 	# Handle keyboard input for camera movement
 	var direction = Vector3.ZERO
 
