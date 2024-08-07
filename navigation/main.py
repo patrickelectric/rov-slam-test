@@ -27,7 +27,7 @@ def main() -> None:
         if args.vehicle:
             if not detector.succeeded:
                 print("No markers detected, deactivating vehicle")
-                vehicle.actuate(camera.position, camera.rotation.yaw)
+                vehicle.deactivate()
                 continue
 
             vehicle.actuate(camera.position, camera.rotation.yaw)
