@@ -3,8 +3,9 @@ extends Camera3D
 const screenshot_path = "res://screenshots/"
 
 func _ready():
-	await take_screenshots()
-	get_tree().quit()
+	if not OS.get_environment("GENERATE_TESTS").is_empty():
+		await take_screenshots()
+		get_tree().quit()
 
 func calculate_camera_matrix():
 	var viewport_size = get_viewport().get_visible_rect().size
