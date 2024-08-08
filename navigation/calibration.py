@@ -11,7 +11,7 @@ class CameraCalibrator:
     """
 
     def __init__(
-        self, camera: Camera, samples_needed: int = 200
+        self, camera: Camera, ideal_calibration = False, samples_needed: int = 200
     ) -> None:
         """
         Args:
@@ -21,6 +21,7 @@ class CameraCalibrator:
         """
 
         self.camera = camera
+        self.ideal_calibration = ideal_calibration
         self.chessboard_size = (6, 9)
         self.samples_needed = samples_needed
 
@@ -55,7 +56,34 @@ class CameraCalibrator:
 
         print("Calibration completed successfully")
 
+    def create_ideal_matrix(self):
+        width = self.camera.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = self.camera.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        matrix = np.array([
+            [
+                width / 2,
+                0.0,
+                height / 2
+            ],
+            [
+                0.0,
+                width / 2,
+                height / 2
+            ],
+            [
+                0.0,
+                0.0,
+                1.0
+            ]
+        ])
+        distortion = np.array([[0, 0, 0, 0]])
+        self.save_calibration(matrix, distortion)
+
     def calibrate(self) -> None:
+        if self.ideal_calibration:
+            self.create_ideal_matrix()
+            return
+
         counter = 0
         while counter < self.samples_needed:
             # Capture frame-by-frame
