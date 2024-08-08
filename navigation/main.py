@@ -5,6 +5,7 @@ from world import World
 from slam import SLAM
 from vehicle import Vehicle
 from test_set import run_test_set
+from calibration import CameraCalibrator
 
 
 def main() -> None:
@@ -15,6 +16,12 @@ def main() -> None:
         return
 
     camera = VideoCamera(args.camera)
+
+    if args.calibrate_camera:
+        calibrator = CameraCalibrator(camera)
+        calibrator.calibrate()
+        return
+
     world = World(args.world)
     detector = SLAM(world, camera)
 
