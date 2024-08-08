@@ -11,7 +11,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Tool for capturing reference images for camera calibration")
 
     parser.add_argument(
-        "--camera-source", type=str, required=True, help="Camera source to capture images from"
+        "--camera-source", type=str, default="0", help="Camera source to capture images from"
     )
     parser.add_argument(
         "--n-photos", type=int, default=200, help="Number of photos to capture"
