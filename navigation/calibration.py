@@ -11,7 +11,7 @@ class CameraCalibrator:
     """
 
     def __init__(
-        self, camera: Camera
+        self, camera: Camera, samples_needed: int = 200
     ) -> None:
         """
         Args:
@@ -22,7 +22,7 @@ class CameraCalibrator:
 
         self.camera = camera
         self.chessboard_size = (6, 9)
-        self.samples_needed = 200
+        self.samples_needed = samples_needed
 
         # stop the iteration when specified
         # accuracy, epsilon, is reached or
