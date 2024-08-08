@@ -43,7 +43,7 @@ class SLAM:
             "world/cam",
             rr.Transform3D(
                 translation=filtered_position,
-                rotation=[self.camera.rotation.x, self.camera.rotation.y, self.camera.rotation.z],
+                rotation=rr.Quaternion(xyzw=filtered_quat),
             ),
         )
 
