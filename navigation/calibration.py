@@ -42,8 +42,9 @@ class CameraCalibrator:
         calibration_data = {
             "id": self.camera.configuration.id,
             "resolution": {
-                "width": self.camera.configuration.resolution.width,
-                "height": self.camera.configuration.resolution.height
+                # This should match the configuration file, but the device can do something different
+                "width": self.camera.resolution.width,
+                "height": self.camera.resolution.height
             },
             "calibration_matrix": matrix.tolist(),
             "distortion_coefficients": [[dist] for dist in distortion.tolist()[0]]

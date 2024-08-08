@@ -29,16 +29,23 @@ class Camera:
         return np.array(self.configuration.calibration_matrix)
 
     @property
+    def resolution(self) -> CameraResolution:
+        return CameraResolution(
+            width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH),
+            height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT),
+        )
+
+    @property
     def distortion(self) -> np.ndarray:
         return np.array(self.configuration.distortion_coefficients)
 
-    def __init__(self, config: CameraConfiguration, configuration_path: str) -> None:
+    def __init__(self, configuration_path: str) -> None:
         self.optimal_camera_matrix, _ = cv2.getOptimalNewCameraMatrix(
             self.matrix,
             self.distortion,
-            (config.resolution.width, config.resolution.height),
+            (self.resolution.width, self.resolution.height),
             1,
-            (config.resolution.width, config.resolution.height)
+            (self.resolution.width, self.resolution.height)
         )
         self.configuration_path = configuration_path
 
@@ -48,8 +55,8 @@ class Camera:
                 "world/cam/image",
                 rr.Pinhole(
                     focal_length=300,
-                    width=config.resolution.width,
-                    height=config.resolution.height
+                    width=self.resolution.width,
+                    height=self.resolution.height
                 ),
             )
 
@@ -114,7 +121,7 @@ class VideoCamera(Camera):
         self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'H264'))
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.configuration.resolution.width)
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.configuration.resolution.height)
-        super().__init__(self.configuration, configuration_file)
+        super().__init__(configuration_file)
 
     def __del__(self):
         if self.capture and self.capture.isOpened():
@@ -149,7 +156,7 @@ class ImageCamera(Camera):
         self.frames: np.ndarray = frames
         self.last_frame = 0
 
-        super().__init__(self.configuration, configuration_file)
+        super().__init__(configuration_file)
 
     def get_frame(self) -> Optional[np.ndarray]:
         frame = self.frames[self.last_frame]
