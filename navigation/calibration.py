@@ -22,12 +22,12 @@ class CameraCalibrator:
 
         self.camera = camera
         self.chessboard_size = (6, 9)
-        self.samples_needed = 50
+        self.samples_needed = 200
 
         # stop the iteration when specified
         # accuracy, epsilon, is reached or
         # specified number of iterations are completed.
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.0005)
 
         # Vector for 3D points
         self.points_3d = []
@@ -61,45 +61,32 @@ class CameraCalibrator:
             # Capture frame-by-frame
             frame = self.camera.get_frame()
 
-            if frame is None:
-                print("Invalid frame, discarding...")
+            if frame is not None:
+                gray_color = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            print(frame.size)
-            print(frame.shape)
+                # Find the chess board corners
+                ret, corners = cv2.findChessboardCorners(
+                    gray_color, self.chessboard_size,
+                    cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_FAST_CHECK + cv2.CALIB_CB_NORMALIZE_IMAGE
+                )
+
+                if ret:
+                    self.points_3d.append(self.object_points)
+
+                    # Refining pixel coordinates for given 2d points.
+                    corners2 = cv2.cornerSubPix(gray_color, corners, (11, 11), (-1, -1), self.criteria)
+                    self.points_2d.append(corners2)
+
+                    # Draw and display the corners
+                    frame = cv2.drawChessboardCorners(frame, self.chessboard_size, corners2, ret)
+                    counter += 1
+                    print(f"Sample {counter} of {self.samples_needed} collected")
+                    time.sleep(0.15)
 
             cv2.imshow('Calibration Table', frame)
 
-            gray_color = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-            # Find the chess board corners
-            # If desired number of corners are
-            # found in the image then ret = true
-            ret, corners = cv2.findChessboardCorners(
-                            gray_color, self.chessboard_size,
-                            cv2.CALIB_CB_ADAPTIVE_THRESH
-                            + cv2.CALIB_CB_FAST_CHECK +
-                            cv2.CALIB_CB_NORMALIZE_IMAGE)
-
-            # If desired number of corners can be detected then,
-            # refine the pixel coordinates and display
-            # them on the images of checker board
-            if ret == True:
-                self.points_3d.append(self.object_points)
-
-                # Refining pixel coordinates
-                # for given 2d points.
-                corners2 = cv2.cornerSubPix(
-                    gray_color, corners, (11, 11), (-1, -1), self.criteria)
-
-                self.points_2d.append(corners2)
-
-                # Draw and display the corners
-                frame = cv2.drawChessboardCorners(frame, self.chessboard_size, corners2, ret)
-
-                cv2.imshow('Calibration Table', frame)
-                counter += 1
-                print(f"Sample {counter} of {self.samples_needed} collected")
-                time.sleep(0.5)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
         cv2.destroyAllWindows()
 
@@ -107,7 +94,7 @@ class CameraCalibrator:
         # passing the value of above found out 3D points (threedpoints)
         # and its corresponding pixel coordinates of the
         # detected corners (twodpoints)
-        ret, matrix, distortion, r_vecs, t_vecs = cv2.calibrateCamera(
+        ret, matrix, distortion, _, _ = cv2.calibrateCamera(
             self.points_3d, self.points_2d, gray_color.shape[::-1], None, None
         )
 
