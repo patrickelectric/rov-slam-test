@@ -18,7 +18,7 @@ def main() -> None:
     camera = VideoCamera(args.camera)
 
     if args.calibrate_camera:
-        calibrator = CameraCalibrator(camera)
+        calibrator = CameraCalibrator(camera, args.ideal_calibration)
         calibrator.calibrate()
         return
 
