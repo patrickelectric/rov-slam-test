@@ -58,8 +58,8 @@ class CameraCalibrator:
         print("Calibration completed successfully")
 
     def create_ideal_matrix(self):
-        width = self.camera.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        height = self.camera.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        width = self.camera.resolution.width
+        height = self.camera.resolution.height
         matrix = np.array([
             [
                 width / 2,
