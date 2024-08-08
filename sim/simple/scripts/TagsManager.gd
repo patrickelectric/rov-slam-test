@@ -15,15 +15,22 @@ func _ready():
 			return
 		var aruco_id = result.get_string("id")
 
-		var sprite = Sprite3D.new()
-		sprite.set_draw_flag(SpriteBase3D.DrawFlags.FLAG_DOUBLE_SIDED, false)
-		sprite.texture = load(path + file)
-		var size = sprite.texture.get_width()
-		var size_m = 0.2
-		sprite.pixel_size = 0.2 / size
-		sprite.position = Vector3(1*i, 0, 0)
-		sprite.set_name("aruco_%d" % i)
-		sprite.set_meta("id", int(aruco_id))
-		sprite.set_meta("size_m", size_m)
+		var mesh_instance = MeshInstance3D.new()
+		var material = StandardMaterial3D.new()
+		material.albedo_texture = load(path + file)
+		material.emission_enabled = true
+		material.emission_texture = load(path + file)
+		mesh_instance.material_override = material
+		mesh_instance.mesh = create_plane_mesh(Vector2(0.22, 0.22))
+		mesh_instance.position = Vector3(1*i, 0, 0)
+		mesh_instance.set_name("aruco_%d" % i)
+		mesh_instance.set_meta("id", int(aruco_id))
+		mesh_instance.set_meta("size_m", 0.2)
 		i += 1
-		add_child(sprite)
+		add_child(mesh_instance)
+		print(mesh_instance)
+
+func create_plane_mesh(size: Vector2) -> PlaneMesh:
+	var plane_mesh = QuadMesh.new()
+	plane_mesh.size = size
+	return plane_mesh
