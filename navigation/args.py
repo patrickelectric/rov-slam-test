@@ -11,6 +11,7 @@ class CommandLineArgs:
     vehicle: Optional[str] = None
     test_set: Optional[str] = None
     calibrate_camera: Optional[bool] = None
+    ideal_calibration: Optional[bool] = None
 
     @staticmethod
     def from_args() -> "CommandLineArgs":
@@ -31,6 +32,10 @@ class CommandLineArgs:
         parser.add_argument(
             "--calibrate-camera", default=None, action="store_true", help="Calibrate the camera"
         )
+        parser.add_argument(
+            "--ideal-calibration", type=bool, default=False, help="Create an ideal calibration matrix",
+            action=argparse.BooleanOptionalAction
+        )
 
         args = parser.parse_args()
         navigation_args = CommandLineArgs(
@@ -38,7 +43,8 @@ class CommandLineArgs:
             world=args.world,
             vehicle=args.vehicle,
             test_set=args.test_set,
-            calibrate_camera=args.calibrate_camera
+            calibrate_camera=args.calibrate_camera,
+            ideal_calibration=args.ideal_calibration
         )
 
         if navigation_args.test_set or navigation_args.calibrate_camera:
