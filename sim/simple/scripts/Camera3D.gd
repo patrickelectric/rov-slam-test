@@ -50,9 +50,9 @@ func take_screenshots():
 	for step in range(10*10):
 		var x = step % 10
 		var y = int(step / 10)
-		position.z = 1.5
-		position.x = 1.5 - 3 * x / 9
-		position.y = 4.3 + 1.5 * y / 9
+		position.z = 0.5
+		position.x = 0.5 - 1.0 * x / 9
+		position.y = 4.8 + 0.4 * y / 9
 		await get_tree().create_timer(0.1).timeout
 		take_chess_screenshot(step)
 
@@ -93,7 +93,7 @@ func generate_json(path: String):
 		for tag in root_kids.get_children(true):
 			if not tag.name.to_lower().begins_with("aruco_"):
 				continue
-			var sprite: Sprite3D = tag
+			var sprite: MeshInstance3D = tag
 			print(sprite, sprite.name, sprite.get_meta("id"), sprite.position, sprite.rotation)
 			tag_json.id = sprite.get_meta("id")
 			tag_json.position = from_vector3_to_json(sprite.position)
