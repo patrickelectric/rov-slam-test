@@ -9,12 +9,15 @@ from camera import ImageCamera
 from world import World
 from slam import SLAM
 from utils.vector import Vec3
+from calibration import CameraCalibrator
+from typing import Optional
 
 
 def run_test_set(test_set_path: str) -> None:
-    images = glob.glob(os.path.join(test_set_path, "*.png"))
+    images = glob.glob(os.path.join(test_set_path, "world_*.png"))
 
     skipped = []
+    calibrated_camera_path: Optional[str] = None
     for image_path in images:
         print("================================")
         print(f"Running test on {image_path}...")
@@ -42,14 +45,22 @@ def run_test_set(test_set_path: str) -> None:
         with open(json_path, "r") as f:
             data = json.load(f)
 
-        frame = cv2.imread(image_path)
+        if not calibrated_camera_path:
+            calibration_frames = []
+            for chess_file in sorted(glob.glob(os.path.join(test_set_path, "chess_*.png"))):
+                calibration_frames.append(cv2.imread(chess_file))
+            calibrator = CameraCalibrator(ImageCamera(camera_json_path, calibration_frames), 100)
+            calibrator.calibrate()
+            calibrated_camera_path = camera_json_path
 
-        camera = ImageCamera(camera_json_path, [frame])
+        frame = cv2.imread(image_path)
+        camera = ImageCamera(calibrated_camera_path, [frame])
         world = World(tags_json_path)
         detector = SLAM(world, camera)
 
         detector.detect()
         cv2.imshow("Frame", frame)
+        cv2.waitKey(10)
 
         time.sleep(2)
 
