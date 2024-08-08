@@ -17,7 +17,7 @@ class CameraResolution(BaseModel):
 class CameraConfiguration(BaseModel):
     id: int | str
     resolution: CameraResolution
-    calibration_matrix: List[List[float]]
+    calibration_matrix: Optional[List[List[float]]] = np.array([[600, 0.0, 400], [0.0, 600, 260], [0.0, 0.0, 1.0]])
     distortion_coefficients: Optional[List[List[float]]] = np.array([[0.0],[0.0],[0.0],[0.0], [0.0]])
     rotation_vectors: Optional[List[List[List[float]]]] = None
     translation_vectors: Optional[List[List[List[float]]]] = None
@@ -32,7 +32,7 @@ class Camera:
     def distortion(self) -> np.ndarray:
         return np.array(self.configuration.distortion_coefficients)
 
-    def __init__(self, config: CameraConfiguration) -> None:
+    def __init__(self, config: CameraConfiguration, configuration_path: str) -> None:
         self.optimal_camera_matrix, _ = cv2.getOptimalNewCameraMatrix(
             self.matrix,
             self.distortion,
@@ -40,6 +40,7 @@ class Camera:
             1,
             (config.resolution.width, config.resolution.height)
         )
+        self.configuration_path = configuration_path
 
         if os.environ.get("RERUN_DISABLE_UI") != "1":
             rr.init("Camera Position", spawn=True)
@@ -89,11 +90,13 @@ class Camera:
 
 class VideoCamera(Camera):
     def __init__(self, configuration_file: str) -> None:
+        self.configuration_path = configuration_file
         try:
             with open(configuration_file, "r") as file:
                 self.configuration = CameraConfiguration(**json.load(file))
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise ValueError(f"Error reading configuration file: {e}")
+
 
         self.capture: Optional[cv2.VideoCapture] = None
         print(f"Camera Source: {self.configuration.id}")
@@ -111,7 +114,7 @@ class VideoCamera(Camera):
         self.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'H264'))
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.configuration.resolution.width)
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.configuration.resolution.height)
-        super().__init__(self.configuration)
+        super().__init__(self.configuration, configuration_file)
 
     def __del__(self):
         if self.capture and self.capture.isOpened():
@@ -132,19 +135,26 @@ class VideoCamera(Camera):
 
 
 class ImageCamera(Camera):
-    def __init__(self, configuration_file: str, frame: np.ndarray) -> None:
+    def __init__(
+        self,
+        configuration_file: str,
+        frames: List[np.ndarray]
+    ) -> None:
         try:
             with open(configuration_file, "r") as file:
                 self.configuration = CameraConfiguration(**json.load(file))
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise ValueError(f"Error reading configuration file: {e}")
 
-        self.frame: np.ndarray = frame
+        self.frames: np.ndarray = frames
+        self.last_frame = 0
 
-        super().__init__(self.configuration)
+        super().__init__(self.configuration, configuration_file)
 
     def get_frame(self) -> Optional[np.ndarray]:
-        return self.frame
+        frame = self.frames[self.last_frame]
+        self.last_frame = (self.last_frame + 1) % len(self.frames)
+        return frame
 
 
 class GstreamerCamera(Camera):
@@ -157,7 +167,7 @@ class GstreamerCamera(Camera):
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise ValueError(f"Error reading configuration file: {e}")
 
-        self.video = Video(self.configuration.id)
+        self.video = Video(self.configuration.id, configuration_file)
 
         super().__init__(self.configuration)
 

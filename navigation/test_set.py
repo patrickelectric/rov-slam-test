@@ -14,8 +14,6 @@ from utils.vector import Vec3
 def run_test_set(test_set_path: str) -> None:
     images = glob.glob(os.path.join(test_set_path, "*.png"))
 
-    os.environ["RERUN_DISABLE_UI"] = "1"
-
     skipped = []
     for image_path in images:
         print("================================")
@@ -46,7 +44,7 @@ def run_test_set(test_set_path: str) -> None:
 
         frame = cv2.imread(image_path)
 
-        camera = ImageCamera(camera_json_path, frame)
+        camera = ImageCamera(camera_json_path, [frame])
         world = World(tags_json_path)
         detector = SLAM(world, camera)
 
