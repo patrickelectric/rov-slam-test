@@ -30,6 +30,11 @@ class Camera:
 
     @property
     def resolution(self) -> CameraResolution:
+        if self.__class__.__name__ == "ImageCamera":
+            return CameraResolution(
+                width = self.frames[0].shape[0],
+                height = self.frames[0].shape[1],
+            )
         return CameraResolution(
             width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH),
             height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT),
