@@ -22,7 +22,6 @@ func _ready():
 		var size_m = 0.2
 		sprite.pixel_size = 0.2 / size
 		sprite.position = Vector3(1*i, 0, 0)
-		sprite.scale.y = -1
 		sprite.set_name("aruco_%d" % i)
 		sprite.set_meta("id", int(aruco_id))
 		sprite.set_meta("size_m", size_m)

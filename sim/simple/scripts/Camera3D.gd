@@ -25,7 +25,6 @@ func calculate_camera_matrix():
 
 func take_screenshot(step: int):
 	var image = get_viewport().get_texture().get_image()
-	image.flip_y() # Images are flipped by default in Godot, so we need to flip them back
 	var file_name = "world_%d" % step
 	var file_path = screenshot_path + file_name
 	image.save_png(file_path + ".png")
@@ -33,7 +32,6 @@ func take_screenshot(step: int):
 
 func take_chess_screenshot(step: int):
 	var image = get_viewport().get_texture().get_image()
-	image.flip_y() # Images are flipped by default in Godot, so we need to flip them back
 	var file_name = "chess_%d" % step
 	var file_path = screenshot_path + file_name
 	image.save_png(file_path + ".png")
