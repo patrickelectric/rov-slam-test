@@ -79,7 +79,7 @@ class Camera:
         frame = self.get_frame()
 
         if frame is None:
-            return None
+            return None, None, None
 
         undistorted_frame = cv2.undistort(
             frame, self.matrix, self.distortion, None, self.optimal_camera_matrix
