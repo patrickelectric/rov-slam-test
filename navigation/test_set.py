@@ -3,6 +3,7 @@ import glob
 import json
 import os
 import cv2
+import re
 import time
 import numpy as np
 from camera import ImageCamera
@@ -10,7 +11,12 @@ from world import World
 from slam import SLAM
 from utils.vector import Vec3
 from calibration import CameraCalibrator
-from typing import Optional
+from typing import List, Optional
+
+def natural_sort(list: List[str]):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(list, key=alphanum_key)
 
 
 def run_test_set(test_set_path: str) -> None:
@@ -47,7 +53,7 @@ def run_test_set(test_set_path: str) -> None:
 
         if not calibrated_camera_path:
             calibration_frames = []
-            for chess_file in sorted(glob.glob(os.path.join(test_set_path, "chess_*.png"))):
+            for chess_file in natural_sort(glob.glob(os.path.join(test_set_path, "chess_*.png"))):
                 calibration_frames.append(cv2.imread(chess_file))
             calibrator = CameraCalibrator(ImageCamera(camera_json_path, calibration_frames), 100)
             calibrator.calibrate()
