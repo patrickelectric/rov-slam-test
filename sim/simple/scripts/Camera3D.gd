@@ -35,7 +35,7 @@ func take_chess_screenshot(step: int):
 	var file_name = "chess_%d" % step
 	var file_path = screenshot_path + file_name
 	image.save_png(file_path + ".png")
-	generate_json(file_path)
+	generate_json(file_path, false)
 
 func take_screenshots():
 	var dir = DirAccess.open("res://")
@@ -56,7 +56,7 @@ func take_screenshots():
 		await get_tree().create_timer(0.1).timeout
 		take_chess_screenshot(step)
 
-func generate_json(path: String):
+func generate_json(path: String, do_tags = true):
 	var viewport_size = get_viewport().get_visible_rect().size
 	var source = {
 		"id": path.get_file(),
@@ -78,6 +78,9 @@ func generate_json(path: String):
 		"position": from_vector3_to_json(position),
 		"rotation": from_vector3_to_json(rotation),
 	}))
+
+	if not do_tags:
+		return
 
 	var tags = {
 		"tags": []
