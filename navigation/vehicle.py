@@ -78,15 +78,43 @@ class Vehicle:
     def deactivate(self):
         self.manual_control(0, 0, 0, 0)
 
-    @ensure_armed
-    def actuate(self, position: Vec3, yaw: float):
+    def _plot_vectors(self, position: Vec3, output: Vec3, yaw: float) -> None:
         rr.log(
             f"world/target",
-            rr.Transform3D(
+            rr.Points3D(
                 translation=[self.target_position.x, self.target_position.y, self.target_position.z],
             ),
         )
 
+        target_vector = Vec3(
+            x=self.target_position.x - position.x,
+            y=self.target_position.y - position.y,
+            z=self.target_position.z - position.z,
+        ).unit()
+        control_vector = Vec3(
+            x=output.x,
+            y=output.y,
+            z=output.z,
+        ).unit()
+
+        rr.log(
+            f"world/target_vector",
+            rr.Arrows3D(
+                start=[position.x, position.y, position.z],
+                end=[target_vector.x, target_vector.y, target_vector.z],
+            ),
+        )
+
+        rr.log(
+            f"world/control_vector",
+            rr.Arrows3D(
+                start=[position.x, position.y, position.z],
+                end=[control_vector.x, control_vector.y, control_vector.z],
+            ),
+        )
+
+    @ensure_armed
+    def actuate(self, position: Vec3, yaw: float):
         dt = 0.1  # Time step, adjust as necessary for your system
 
         x_error = position.x - self.target_position.x

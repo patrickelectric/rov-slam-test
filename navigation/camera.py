@@ -85,7 +85,12 @@ class Camera:
             frame, self.matrix, self.distortion, None, self.optimal_camera_matrix
         )
 
+        # Adjust contrast and brightness
+        #adjusted_frame = cv2.convertScaleAbs(undistorted_frame, alpha=2.1, beta=0.6)
+
+        # Convert to grayscale
         gray = cv2.cvtColor(undistorted_frame, cv2.COLOR_BGR2GRAY)
+
         corners, ids, _ = self.detector.detectMarkers(gray)
 
         if ids is None:

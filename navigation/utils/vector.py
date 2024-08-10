@@ -39,6 +39,9 @@ class Vec3(BaseModel):
     def yaw(self, value: float):
         self.z = value
 
+    def unit(self) -> "Vec3":
+        return Vec3(x=self.x / np.linalg.norm(self.raw), y=self.y / np.linalg.norm(self.raw), z=self.z / np.linalg.norm(self.raw))
+
     def __add__(self, other: "Vec3") -> "Vec3":
         return Vec3(x=self.x + other.x, y=self.y + other.y, z=self.z + other.z)
 
