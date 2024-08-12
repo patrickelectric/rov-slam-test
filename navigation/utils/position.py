@@ -60,7 +60,6 @@ def get_camera_position_from_estimations(rvec: np.ndarray, tvec: np.ndarray, tag
     rotation_matrix = np.eye(4)
     rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvec))[0]
     r = R.from_matrix(rotation_matrix[0:3, 0:3])
-    quat = r.as_quat()
     camera_position = (
         -np.dot(rotation_matrix[0:3, 0:3].T, position)
         + tag_position.to_array()

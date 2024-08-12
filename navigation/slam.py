@@ -19,8 +19,25 @@ class SLAM:
         self.succeeded = False
 
     def _slam(self, camera_positions: List[Vec3], camera_quats: List[Vec3]) -> None:
-        average_position = np.mean(camera_positions, axis=0)
-        average_quat = np.mean(camera_quats, axis=0)
+        threshold = 1.0
+        filtered_positions = []
+        filtered_quats = []
+        if self.old_coord is not None:
+            for camera_pos, camera_quat in zip(camera_positions, camera_quats):
+                distance = np.linalg.norm(np.array(camera_pos) - np.array(self.old_coord))
+
+                if distance <= threshold:
+                    filtered_positions.append(camera_pos)
+                    filtered_quats.append(camera_quat)
+            if not filtered_positions:
+                filtered_positions = camera_positions
+                filtered_quats = camera_quats
+        else:
+            filtered_positions = camera_positions
+            filtered_quats = camera_quats
+
+        average_position = np.average(filtered_positions, axis=0)
+        average_quat = np.average(filtered_quats, axis=0)
 
         if self.old_coord is None:
             self.old_coord = average_position
@@ -64,6 +81,8 @@ class SLAM:
             self.succeeded = False
             return
 
+        camera_quats = []
+        camera_positions = []
         for i in range(len(ids)):
             marker_id = ids[i][0]
             if marker_id not in self.world.absolute_tags:
@@ -86,19 +105,18 @@ class SLAM:
                 1,
             )
 
-            camera_quats = []
-            camera_positions = []
-            # Tag with known position
-            for tag in self.world.tags:
-                if tag.id != marker_id:
-                    continue
+            world_tag = self.world.get_abs_tag(marker_id)
 
-                camera_pos, camera_quat = get_camera_position_from_estimations(rvecs[i], tvecs[i], tag.position)
-                camera_positions.append(camera_pos)
-                camera_quats.append(camera_quat)
+            if world_tag is None:
+                continue
 
-            self._slam(camera_positions, camera_quats)
+            camera_pos, camera_quat = get_camera_position_from_estimations(rvecs[i], tvecs[i], world_tag.position)
+            camera_positions.append(camera_pos)
+            camera_quats.append(camera_quat)
 
+        if len(camera_positions) == 0 or len(camera_quats) == 0:
+            return
+
+        self._slam(camera_positions, camera_quats)
         self.succeeded = True
-
         cv2.imshow("Aruco Marker Detection", frame)
