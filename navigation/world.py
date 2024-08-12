@@ -51,13 +51,13 @@ class World:
             rr.log(
                 f"world/tag_{tag.id}",
                 rr.Transform3D(
-                    translation=[tag.position.x, tag.position.y, tag.position.z]
+                    translation=[tag.position.x + tag.size_m / 2.0, tag.position.y - tag.size_m / 2.0, tag.position.z]
                 ),
             )
 
     def gen_aruco_img(self, tag_id: int, size: float) -> None:
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
-        tag_size_px = int(size * 10 * 370.7952755906)
+        tag_size_px = int(size * 3000)
         return cv2.aruco.generateImageMarker(aruco_dict, tag_id, tag_size_px)
 
     def get_abs_tag(self, tag_id: int) -> TagData | None:

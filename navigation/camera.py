@@ -61,12 +61,16 @@ class Camera:
                 rr.Pinhole(
                     focal_length=300,
                     width=self.resolution.width,
-                    height=self.resolution.height
+                    height=self.resolution.height,
                 ),
             )
 
         parameters = cv2.aruco.DetectorParameters()
         parameters.minMarkerPerimeterRate = 0.08
+        parameters.minDistanceToBorder = 0
+        parameters.minGroupDistance = 0
+        parameters.cornerRefinementMinAccuracy = 0.5
+        parameters.errorCorrectionRate = 0.9
 
         self.detector = cv2.aruco.ArucoDetector(
             cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL),
