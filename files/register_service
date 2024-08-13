@@ -1,0 +1,10 @@
+{
+    "name": "BSLAMP",
+    "description": "BlueOS SLAM Project",
+    "icon": "mdi-map-marker-path",
+    "company": "Blue Robotics",
+    "version": "0.0.1",
+    "new_page": true,
+    "webpage": "https://github.com/patrickelectric/rov-slam-test",
+    "api": "/v1.0/docs"
+}
