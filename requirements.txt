@@ -3,7 +3,7 @@ attrs==23.2.0
 future==1.0.0
 lxml==5.2.2
 numpy==1.26.4
-opencv-contrib-python==4.10.0.84
+opencv-contrib-python-headless==4.10.0.84
 pillow==10.4.0
 pyarrow==17.0.0
 pycairo==1.26.1
