@@ -6,6 +6,7 @@ from slam import SLAM
 from vehicle import Vehicle
 from test_set import run_test_set
 from calibration import CameraCalibrator
+from mission import MissionNavigator
 
 
 def main() -> None:
@@ -28,15 +29,16 @@ def main() -> None:
     if args.vehicle:
         vehicle = Vehicle(args.vehicle)
 
+    if args.mission:
+        mission = MissionNavigator(args.mission, vehicle)
+
     while True:
         detector.detect()
 
-        if args.vehicle:
-            if not detector.succeeded:
-                print("No markers detected, deactivating vehicle")
-                vehicle.deactivate()
-                continue
+        if args.mission:
+            mission.update(camera.position, camera.rotation)
 
+        if args.vehicle:
             vehicle.actuate(camera.position, camera.rotation.yaw)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):

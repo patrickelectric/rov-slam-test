@@ -9,6 +9,7 @@ class CommandLineArgs:
     camera: str
     world: str
     vehicle: Optional[str] = None
+    mission: Optional[str] = None
     test_set: Optional[str] = None
     calibrate_camera: Optional[bool] = None
     ideal_calibration: Optional[bool] = None
@@ -36,16 +37,23 @@ class CommandLineArgs:
             "--ideal-calibration", type=bool, default=False, help="Create an ideal calibration matrix",
             action=argparse.BooleanOptionalAction
         )
+        parser.add_argument(
+            "--mission", type=str, default=None, help="Mission file to run"
+        )
 
         args = parser.parse_args()
         navigation_args = CommandLineArgs(
             camera=args.camera,
             world=args.world,
             vehicle=args.vehicle,
+            mission=args.mission,
             test_set=args.test_set,
             calibrate_camera=args.calibrate_camera,
             ideal_calibration=args.ideal_calibration
         )
+
+        if navigation_args.mission and not navigation_args.vehicle:
+            raise ValueError("Mission file requires a vehicle connection string")
 
         if navigation_args.test_set or navigation_args.calibrate_camera:
             os.environ["RERUN_DISABLE_UI"] = "1"
