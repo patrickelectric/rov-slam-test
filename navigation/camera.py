@@ -59,7 +59,7 @@ class Camera:
             rr.log(
                 "world/cam/image",
                 rr.Pinhole(
-                    focal_length=300,
+                    focal_length=350,
                     width=self.resolution.width,
                     height=self.resolution.height,
                 ),
@@ -90,18 +90,38 @@ class Camera:
         if frame is None:
             return None, None, None
 
-        undistorted_frame = cv2.undistort(
-            frame, self.matrix, self.distortion, None, self.optimal_camera_matrix
+        # For normal cameras
+        #undistorted_frame = cv2.undistort(
+        #    frame, self.matrix, self.distortion, None, self.optimal_camera_matrix
+        #)
+
+        # For fisheye cameras
+        map1, map2 = cv2.fisheye.initUndistortRectifyMap(
+            self.matrix,
+            self.distortion,
+            np.eye(3),
+            self.matrix,
+            (self.resolution.width, self.resolution.height),
+            cv2.CV_16SC2
         )
+        undistorted_frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+
+        # Convert to hsv and only use hue
+        undistorted_frame = cv2.cvtColor(undistorted_frame, cv2.COLOR_BGR2HSV)
+
+        # Only maintains hue
+        undistorted_frame[:,:,1] = 0
+
+        undistorted_frame = cv2.cvtColor(undistorted_frame, cv2.COLOR_HSV2BGR)
 
         gray = cv2.cvtColor(undistorted_frame, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = self.detector.detectMarkers(gray)
 
         if ids is None:
-            return frame, None, None
+            return undistorted_frame, None, None
 
-        cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-        return frame, corners, ids
+        cv2.aruco.drawDetectedMarkers(undistorted_frame, corners, ids)
+        return undistorted_frame, corners, ids
 
 
 class VideoCamera(Camera):
