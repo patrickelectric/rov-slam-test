@@ -3,7 +3,9 @@ from pymavlink import mavutil
 from utils.vector import Vec3
 import rerun as rr
 import numpy as np
+import time
 
+import cv2
 
 class PIDController:
     def __init__(self, kp, ki, kd, max_output):
@@ -23,6 +25,11 @@ class PIDController:
 
 
 class Vehicle:
+    x_pid = PIDController(kp=1783, ki=30, kd=2, max_output=900)
+    y_pid = PIDController(kp=560, ki=15, kd=2, max_output=500)
+    z_pid = PIDController(kp=1783, ki=30, kd=2, max_output=900)
+    yaw_pid = PIDController(kp=500, ki=10, kd=8, max_output=300)
+
     def __init__(self, vehicle_connection: str) -> None:
         self.master = mavutil.mavlink_connection(vehicle_connection)
         self.send_heartbeat()
@@ -33,10 +40,27 @@ class Vehicle:
         self.home_yaw: float | None = None
         self.average_positioning_error: float = 100000
 
-        self.x_pid = PIDController(kp=2070, ki=3.5, kd=25, max_output=750)
-        self.y_pid = PIDController(kp=2070, ki=3.5, kd=25, max_output=500)
-        self.z_pid = PIDController(kp=2200, ki=3.5, kd=25, max_output=750)
-        self.yaw_pid = PIDController(kp=100, ki=1.8, kd=15, max_output=120)
+        cv2.namedWindow('Aruco Marker Detection')
+        cv2.createTrackbar("kp_x", "Aruco Marker Detection", 1783, 5000, lambda x: Vehicle.x_pid.__setattr__("kp", x))
+        cv2.createTrackbar("ki_x", "Aruco Marker Detection", 30, 100, lambda x: Vehicle.x_pid.__setattr__("ki", x))
+        cv2.createTrackbar("kd_x", "Aruco Marker Detection", 2, 100, lambda x: Vehicle.x_pid.__setattr__("kd", x))
+
+        cv2.createTrackbar("kp_y", "Aruco Marker Detection", 560, 5000, lambda x: Vehicle.y_pid.__setattr__("kp", x))
+        cv2.createTrackbar("ki_y", "Aruco Marker Detection", 15, 100, lambda x: Vehicle.y_pid.__setattr__("ki", x))
+        cv2.createTrackbar("kd_y", "Aruco Marker Detection", 2, 100, lambda x: Vehicle.y_pid.__setattr__("kd", x))
+
+        cv2.createTrackbar("kp_z", "Aruco Marker Detection", 1783, 5000, lambda x: Vehicle.z_pid.__setattr__("kp", x))
+        cv2.createTrackbar("ki_z", "Aruco Marker Detection", 30, 100, lambda x: Vehicle.z_pid.__setattr__("ki", x))
+        cv2.createTrackbar("kd_z", "Aruco Marker Detection", 2, 100, lambda x: Vehicle.z_pid.__setattr__("kd", x))
+
+        cv2.createTrackbar("kp_yaw", "Aruco Marker Detection", 500, 2000, lambda x: Vehicle.yaw_pid.__setattr__("kp", x))
+        cv2.createTrackbar("ki_yaw", "Aruco Marker Detection", 10, 100, lambda x: Vehicle.yaw_pid.__setattr__("ki", x))
+        cv2.createTrackbar("kd_yaw", "Aruco Marker Detection", 8, 100, lambda x: Vehicle.yaw_pid.__setattr__("kd", x))
+
+        self.gripper_reset_state(62)
+
+    def __del__(self):
+        self.gripper_reset_state(0)
 
     def send_heartbeat(self):
         self.master.mav.heartbeat_send(
@@ -67,6 +91,45 @@ class Vehicle:
     def set_home(self, position: Vec3, yaw: float = 0):
         self.home_yaw = yaw
         self.home_position = position
+
+    def gripper_reset_state(self, val: int) -> None:
+        self.master.mav.param_set_send(
+            self.master.target_system, self.master.target_component,
+            b'SERVO9_FUNCTION',
+            val,
+            mavutil.mavlink.MAV_PARAM_TYPE_REAL32
+        )
+
+    def set_gripper_pwm(self, pwm: int) -> None:
+        rc_channel_values = [65535 for _ in range(18)]
+        rc_channel_values[12 - 1] = pwm
+        self.master.mav.rc_channels_override_send(
+            self.master.target_system,
+            self.master.target_component,
+            *rc_channel_values
+        )
+
+    def set_camera_gimbal(self, pitch: int, yaw: int) -> None:
+        # Set small pitch rate
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_DO_GIMBAL_MANAGER_PITCHYAW,
+            0,
+            pitch, yaw, 0, 0, 0, 0, 0
+        )
+
+    def look_down(self) -> None:
+        self.set_camera_gimbal(-65, 0)
+
+    def look_forward(self) -> None:
+        self.set_camera_gimbal(10, 0)
+
+    def open_gripper(self) -> None:
+        self.set_gripper_pwm(2000)
+
+    def close_gripper(self) -> None:
+        self.set_gripper_pwm(1000)
 
     def move_rel(self, position: Vec3, yaw: float = 0):
         if self.target_position is None:
@@ -121,8 +184,8 @@ class Vehicle:
             ),
         )
 
-        print(f"Target Position: {self.target_position}")
-        print(f"Current Position: {position}")
+        #print(f"Target Position: {self.target_position}")
+        #print(f"Current Position: {position}")
 
         dt = 0.1
 
@@ -138,6 +201,7 @@ class Vehicle:
 
         self.average_positioning_error = np.linalg.norm([x_error, y_error, z_error])
 
-        print(f"Output: {x_output}, {y_output}, {z_output}, {yaw_output}")
+        #print(f"Yaw Error: {yaw_error}")
+        #print(f"Output: {x_output}, {y_output}, {z_output}, {yaw_output}")
 
-        self.manual_control(x_output, y_output, z_output, yaw_output)
+        self.manual_control(x_output, y_output, z_output, 0)
