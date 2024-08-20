@@ -72,7 +72,7 @@ class SLAM:
 
         try:
             rvecs, tvecs, _ = estimate_pose_single_markers(
-                corners, self.world.tags_size, self.camera.matrix, self.camera.distortion, ids
+                corners, self.world.tags_size, self.camera.matrix, np.zeros((1,5)), ids
             )
         except cv2.error:
             return
@@ -88,7 +88,7 @@ class SLAM:
             if marker_id not in self.world.absolute_tags:
                 continue
             cv2.drawFrameAxes(
-                frame, self.camera.matrix, self.camera.distortion, rvecs[i], tvecs[i], 0.1, 1
+                frame, self.camera.matrix, np.zeros((1,5)), rvecs[i], tvecs[i], 0.1, 1
             )
             distance, angles = get_positioning_from_estimation(rvecs[i], tvecs[i])
             # Rest of the processing code remains the same

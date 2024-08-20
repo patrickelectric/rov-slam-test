@@ -38,7 +38,13 @@ def estimate_pose_single_markers(
         ],
             dtype=np.float32,
         )
-        _, R, t = cv2.solvePnP(marker_points, c, mtx, distortion)
+        _, R, t = cv2.solvePnP(
+            marker_points,
+            c,
+            mtx,
+            distortion,
+            flags=cv2.SOLVEPNP_ITERATIVE,
+        )
         rvecs.append(R)
         tvecs.append(t)
         trash.append(_)
